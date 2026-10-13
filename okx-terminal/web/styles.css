@@ -1,0 +1,156 @@
+/* ============================================================
+   OKX // TERMINAL  —  dark terminal, monospace, high density
+   ============================================================ */
+:root{
+  --bg:#000;
+  --fg:#d8d8d8;
+  --dim:#6a6a6a;
+  --dimmer:#3a3a3a;
+  --line:#1b1b1b;
+  --line2:#262626;
+  --up:#00e07a;      /* 涨 / 买 */
+  --down:#ff3b46;    /* 跌 / 卖 */
+  --warn:#ffb000;    /* 琥珀 */
+  --cyan:#3ad7ff;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);
+  font-family:var(--mono);font-size:12px;line-height:1.25;
+  -webkit-font-smoothing:antialiased;overflow:hidden;}
+body{display:flex;flex-direction:column;}
+b{font-weight:600;}
+code{color:var(--cyan);font-family:var(--mono);}
+
+/* ---------- sim banner ---------- */
+.sim-banner{
+  background:#2a1e00;color:var(--warn);border-bottom:1px solid var(--warn);
+  padding:4px 10px;font-size:12px;text-align:center;letter-spacing:.02em;flex:0 0 auto;
+}
+.sim-banner b{color:#ffd97a;}
+
+/* ============================ 顶栏 ============================ */
+#topbar{
+  flex:0 0 auto;display:flex;align-items:center;gap:14px;
+  border-bottom:1px solid var(--line2);padding:5px 10px;
+  background:linear-gradient(#0b0b0b,#000);
+  min-height:34px;
+}
+.tb-left{display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+.brand{color:var(--up);font-weight:700;letter-spacing:.06em;}
+.chan{
+  font-size:10px;padding:1px 5px;border:1px solid var(--line2);color:var(--dim);
+  letter-spacing:.08em;
+}
+.chan-ws{color:var(--up);border-color:var(--up);}
+.chan-sse{color:var(--cyan);border-color:var(--cyan);}
+.chan-sim{color:var(--warn);border-color:var(--warn);}
+.chan-down{color:var(--down);border-color:var(--down);}
+
+.tb-mid{flex:1 1 auto;display:flex;gap:18px;overflow:hidden;white-space:nowrap;}
+.ticker{display:flex;align-items:baseline;gap:5px;}
+.t-sym{color:var(--dim);letter-spacing:.06em;}
+.t-px{font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;
+      transition:color .45s ease-out, text-shadow .45s ease-out;}
+.t-chg{font-size:11px;font-variant-numeric:tabular-nums;}
+.t-chg.up{color:var(--up);} .t-chg.down{color:var(--down);}
+
+/* 价格跳动闪光：由真实推送切换 class 触发，非 setInterval 假动画 */
+.t-px.flash-up{color:var(--up);text-shadow:0 0 10px rgba(0,224,122,.95);transition:none;}
+.t-px.flash-down{color:var(--down);text-shadow:0 0 10px rgba(255,59,70,.95);transition:none;}
+.t-px.tick-up{color:var(--up);} .t-px.tick-down{color:var(--down);}
+
+.tb-right{flex:0 0 auto;display:flex;align-items:center;gap:12px;color:var(--dim);}
+.kv{font-size:11px;letter-spacing:.03em;white-space:nowrap;}
+.kv b{color:var(--fg);font-variant-numeric:tabular-nums;}
+.beat{color:var(--cyan)!important;}
+@keyframes beatpulse{0%{color:#eafff7;}100%{color:var(--cyan);}}
+.beat.pulse{animation:beatpulse .55s ease-out;}
+
+.live{font-size:11px;letter-spacing:.1em;font-weight:700;white-space:nowrap;}
+.live .dot{font-size:14px;line-height:1;}
+.live-up{color:var(--up);}     .live-up .dot{text-shadow:0 0 8px rgba(0,224,122,.9);}
+.live-stale{color:var(--warn);} .live-stale .dot{text-shadow:0 0 8px rgba(255,176,0,.9);}
+.live-down{color:var(--down);}  .live-down .dot{text-shadow:0 0 8px rgba(255,59,70,.9);}
+.live-wait{color:var(--dim);}
+
+/* ============================ 主区 ============================ */
+#grid{
+  flex:1 1 auto;display:grid;grid-template-columns:minmax(240px,1fr) minmax(420px,2fr) minmax(250px,1fr);
+  gap:0;min-height:0;overflow:hidden;
+}
+.panel{border-right:1px solid var(--line);min-width:0;min-height:0;
+       display:flex;flex-direction:column;overflow:hidden;}
+.panel:last-child{border-right:none;}
+.p-head{display:flex;justify-content:space-between;align-items:center;
+  padding:3px 7px;border-bottom:1px solid var(--line);background:#070707;flex:0 0 auto;}
+.p-head.sub{border-top:1px solid var(--line2);}
+.p-title{color:var(--up);font-weight:700;font-size:11px;letter-spacing:.09em;}
+.p-meta{color:var(--dim);font-size:10px;font-variant-numeric:tabular-nums;}
+
+/* ---------- 左列 成交流 ---------- */
+#paneTrades{min-height:0;}
+.thead{display:grid;grid-template-columns:1.15fr 1fr .85fr 1fr;gap:4px;
+  padding:2px 7px;color:var(--dimmer);font-size:10px;border-bottom:1px solid var(--line);
+  flex:0 0 auto;letter-spacing:.08em;}
+.tbody{flex:1 1 auto;overflow:hidden;padding:0 4px 0 7px;}
+.trow{display:grid;grid-template-columns:1.15fr 1fr .85fr 1fr;gap:4px;
+  font-variant-numeric:tabular-nums;font-size:11px;padding:1px 0;
+  border-bottom:1px solid rgba(255,255,255,.018);}
+.trow .px{font-weight:600;}
+.trow.buy .px,.trow.buy .side{color:var(--up);}
+.trow.sell .px,.trow.sell .side{color:var(--down);}
+.trow .sz{color:#bdbdbd;} .trow .tm{color:var(--dim);}
+@keyframes rowin{0%{opacity:0;transform:translateY(-7px);background:rgba(255,255,255,.10);}
+                 55%{opacity:1;background:rgba(255,255,255,.07);}
+                 100%{opacity:1;transform:translateY(0);background:transparent;}}
+.trow.new{animation:rowin .62s ease-out;}
+.trow.buy.new{animation-name:rowin;box-shadow:inset 2px 0 0 var(--up);}
+.trow.sell.new{animation-name:rowin;box-shadow:inset 2px 0 0 var(--down);}
+.empty{color:var(--dimmer);padding:12px 4px;letter-spacing:.1em;}
+
+/* ---------- 中列 canvas ---------- */
+.mid{background:#020202;}
+.canvas-wrap{position:relative;flex:1 1 50%;min-height:0;}
+.depth-wrap{flex:1.15 1 0;}
+.px-wrap{flex:1 1 0;}
+.canvas-wrap canvas{display:block;width:100%;height:100%;}
+.cv-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:var(--dimmer);letter-spacing:.22em;font-size:11px;pointer-events:none;}
+.cv-empty.hide{display:none;}
+.fig-note{flex:0 0 auto;padding:4px 8px;border-top:1px solid var(--line);
+  color:var(--dim);font-size:10px;line-height:1.4;}
+
+/* ---------- 右列 ---------- */
+.right{overflow-y:auto;overflow-x:hidden;}
+.card{border-bottom:1px solid var(--line);display:flex;flex-direction:column;}
+.card.grow{flex:1 1 auto;min-height:0;}
+.card-body{padding:6px 8px 8px;}
+.big{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--fg);
+     transition:color .5s ease-out;}
+.big.flash-up{color:var(--up);text-shadow:0 0 12px rgba(0,224,122,.9);transition:none;}
+.big.flash-down{color:var(--down);text-shadow:0 0 12px rgba(255,59,70,.9);transition:none;}
+.delta{color:var(--dim);font-size:11px;margin-top:3px;font-variant-numeric:tabular-nums;}
+.delta.up{color:var(--up);} .delta.down{color:var(--down);}
+
+.kvtable{width:100%;border-collapse:collapse;font-size:11px;}
+.kvtable td{padding:2px 0;color:var(--dim);letter-spacing:.04em;white-space:nowrap;
+            vertical-align:top;}
+.kvtable td.v{color:var(--fg);text-align:right;font-variant-numeric:tabular-nums;}
+
+
+/* ============================ 底部心跳带 ============================ */
+#heartbeat{
+  flex:0 0 auto;height:52px;display:flex;align-items:center;gap:9px;
+  border-top:1px solid var(--line2);padding:3px 9px;background:#050505;
+}
+.hb-label{color:var(--dim);font-size:10px;letter-spacing:.08em;white-space:nowrap;}
+#cvHeart{flex:1 1 auto;height:40px;min-width:0;}
+.hb-val{color:var(--dim);font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums;}
+
+/* ---------- scrollbars ---------- */
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:#0a0a0a;}
+::-webkit-scrollbar-thumb{background:#242424;border:1px solid #000;}
+::-webkit-scrollbar-thumb:hover{background:#333;}

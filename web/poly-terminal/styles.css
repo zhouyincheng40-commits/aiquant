@@ -1,0 +1,470 @@
+/* ============================================================================
+   POLY // TERMINAL — visual spec
+   纯黑底 / 等宽字体 / 1px 分格线 / 零圆角 / 极高信息密度
+   语义色：绿=正·买·盈利  红=负·卖·亏损  琥珀=EDGE 强信号  灰=元信息  白=主数值
+   ========================================================================== */
+
+:root {
+  --bg:        #000000;
+  --panel:     #000000;
+  --line:      #1a1a1a;   /* 主分格线 */
+  --line-soft: #111111;   /* 行内细线 */
+  --fg:        #e8e8e8;   /* 主数值 */
+  --fg-strong: #ffffff;
+  --dim:       #8a8a8a;   /* 元信息 */
+  --dim2:      #565656;   /* 次要元信息 / 标签 */
+  --green:     #00e07a;
+  --green-bg:  #00c46a;
+  --red:       #ff3b3b;
+  --red-bg:    #e02020;
+  --amber:     #ffb020;
+  --purple:    #6d28d9;
+  --blue:      #1d4ed8;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  height: 100%; width: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+body {
+  display: grid;
+  grid-template-rows: 27px auto 21px minmax(0, 1.6fr) minmax(0, 0.85fr);
+  height: 100vh;
+}
+
+/* ── 滚动条：略加宽提亮，让"下面还有内容"一眼可见（10 行被容器裁掉时靠它） ── */
+.p-body::-webkit-scrollbar { width: 9px; height: 9px; }
+.p-body::-webkit-scrollbar-track { background: #0a0a0a; }
+.p-body::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 0; }
+.p-body::-webkit-scrollbar-thumb:hover { background: #565656; }
+.p-body { scrollbar-color: #3a3a3a #0a0a0a; scrollbar-width: thin; }
+
+/* ══════════════════════ 顶栏 ══════════════════════ */
+.topbar {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.logo {
+  display: flex; align-items: center;
+  padding: 0 12px;
+  color: var(--green);
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+}
+.logo .slash { color: var(--dim2); margin: 0 2px; }
+
+.tokens { display: flex; align-items: stretch; }
+
+.tok {
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 11px;
+  border-left: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--fg-strong);
+}
+.tok-l, .tok-cur {
+  font-size: 8.5px;
+  color: var(--dim2);
+  letter-spacing: 0.12em;
+}
+.tok-arrow { color: var(--green); font-size: 10px; }
+.tok-pnl { font-weight: 600; }
+.tok-pnl[data-tone="pos"] .tok-v { color: var(--green); }
+.tok-pnl[data-tone="neg"] .tok-v { color: var(--red); }
+.tok-sample {
+  color: var(--amber);
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  border-left: 1px solid var(--line);
+}
+
+.spacer { flex: 1; }
+
+.live {
+  display: flex; align-items: center; gap: 5px;
+  padding: 0 12px;
+  border-left: 1px solid var(--line);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  color: var(--fg);
+}
+.live .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 5px var(--red);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.live[data-state="offline"] { color: var(--red); }
+.live[data-state="offline"] .dot { animation: none; opacity: 0.35; box-shadow: none; }
+.live[data-state="degraded"] { color: var(--amber); }
+.live[data-state="degraded"] .dot { background: var(--amber); box-shadow: 0 0 5px var(--amber); }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+/* ══════════════════════ 面板通用 ══════════════════════ */
+.grid-main, .grid-foot {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  min-height: 0;
+  overflow: hidden;
+}
+.grid-main { border-bottom: 1px solid var(--line); }
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+  overflow: hidden;
+}
+.panel:last-child { border-right: none; }
+
+.p-head {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 21px; flex: 0 0 21px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--line);
+  background: #030303;
+}
+.p-title {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  text-transform: uppercase;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.p-right { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.p-dim { font-size: 8.5px; color: var(--dim2); }
+
+.tag {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 1px 5px;
+  border-radius: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tag-red   { background: var(--red-bg);   color: #ffffff; }
+.tag-green { background: var(--green-bg); color: #000000; }
+/* 暗灰底：用于「扫到了但没有机会成立」—— 没有可执行结论的状态不该抢注意力 */
+.tag-dim   { background: #232323; color: var(--dim2); }
+
+.clock { font-size: 9.5px; color: var(--dim); letter-spacing: 0.06em; }
+
+.p-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+
+.p-foot {
+  flex: 0 0 15px;
+  display: flex; align-items: center;
+  padding: 0 8px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 8.5px;
+  color: var(--dim2);
+  letter-spacing: 0.06em;
+  overflow: hidden; white-space: nowrap;
+}
+/* 被容器裁掉时的显式提示（总行数 + 可滚动），避免"标签说 10、看到 4" */
+.p-overflow {
+  color: var(--amber);
+  letter-spacing: 0.08em;
+  margin-right: 2px;
+  flex: 0 0 auto;
+}
+.p-overflow[data-overflow="no"] { color: var(--dim2); }
+
+.p-state.st-ok      { color: #2f5f45; }
+.p-state.st-empty,
+.p-state.st-nodata  { color: var(--amber); }
+.p-state.st-offline { color: var(--red); font-weight: 700; letter-spacing: 0.1em; }
+.p-state.st-loading { color: var(--dim2); }
+
+.panel[data-state="offline"] .p-body { opacity: 0.4; }
+.panel[data-state="offline"] .p-title::after { content: " \00B7 RED"; color: var(--red); }
+
+/* ══════════════════════ 1. MISPRICING SCANNER ══════════════════════ */
+.sc-row {
+  padding: 5px 8px 6px;
+  border-bottom: 1px solid var(--line);
+}
+.sc-l1 { display: flex; align-items: baseline; gap: 5px; min-width: 0; }
+.sc-mkt {
+  font-size: 10.5px; color: #d5d5d5;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  min-width: 0;
+}
+.sc-cross { color: var(--red); font-size: 11px; flex: 0 0 auto; }
+.sc-nums { margin-left: auto; display: flex; gap: 9px; flex: 0 0 auto; }
+.sc-num { display: flex; align-items: baseline; gap: 2px; }
+.sc-num b { color: var(--fg-strong); font-size: 10.5px; font-weight: 500; }
+.sc-num i, .mk-p i {
+  font-style: normal; font-size: 8px; color: var(--dim2); letter-spacing: 0.1em;
+}
+
+.sc-l2 { display: flex; align-items: baseline; gap: 8px; margin-top: 2px; }
+/* 主数值 = 离可行最近那侧的净边际：有符号就上颜色（红=还差着，绿=可做） */
+.sc-price { font-size: 22px; font-weight: 600; color: var(--fg-strong); letter-spacing: -0.02em; }
+.sc-price[data-dir="up"]   { color: var(--green); }
+.sc-price[data-dir="down"] { color: var(--red); }
+.sc-label {
+  font-style: normal; font-size: 7.5px; color: var(--dim2);
+  letter-spacing: 0.12em; flex: 0 0 auto;
+}
+/* Σ 总和降为辅助小字（主焦点让给"离可行还差多远"） */
+.sc-fair { font-size: 9.5px; color: var(--dim2); }
+.sc-vol { margin-left: auto; font-size: 9.5px; color: var(--dim); }
+
+.sc-l3 { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+.sc-side { font-size: 8.5px; color: var(--dim2); letter-spacing: 0.1em; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 9px; padding: 0 4px;
+  border: 1px solid var(--dim2);
+  border-radius: 1px;
+  letter-spacing: 0.02em;
+}
+.badge b { font-weight: 600; }
+.badge i { font-style: normal; font-size: 7.5px; letter-spacing: 0.12em; opacity: 0.85; }
+.badge.flat   { color: var(--dim);   border-color: #2a2a2a; }
+.badge.up     { color: var(--green); border-color: rgba(0, 224, 122, 0.5);  background: rgba(0, 224, 122, 0.08); }
+.badge.down   { color: var(--red);   border-color: rgba(255, 59, 59, 0.5);   background: rgba(255, 59, 59, 0.08); }
+.badge.strong { color: var(--amber); border-color: rgba(255, 176, 32, 0.55); background: rgba(255, 176, 32, 0.1); }
+/* dim = 不成立的机会（NOT VIABLE）：最弱视觉权重，不能比成立的机会更显眼 */
+.badge.dim    { color: var(--dim2);  border-color: #232323; background: transparent; }
+
+.sc-l4 { display: flex; gap: 4px; margin-top: 5px; }
+.btn {
+  flex: 1 1 0;
+  background: #0b0b0b;
+  border: 1px solid #262626;
+  border-radius: 1px;
+  color: #a8a8a8;
+  font-family: inherit;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  padding: 3px 0;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.btn:hover { color: var(--fg-strong); border-color: #3d3d3d; background: #141414; }
+.btn:active { background: #1c1c1c; }
+
+/* ══════════════════════ 2. WALLET TRACKER ══════════════════════ */
+.wl-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.wl-l { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+.wl-r { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex: 0 0 auto; }
+.addr { font-size: 10.5px; color: var(--fg); letter-spacing: 0.01em; }
+.num { font-size: 10.5px; color: var(--fg-strong); }
+
+.tag-src {
+  font-size: 7.5px; font-weight: 700;
+  padding: 0 4px;
+  border-radius: 1px;
+  letter-spacing: 0.12em;
+}
+.k-whale { background: var(--purple); color: #ffffff; }
+.k-top   { background: var(--blue);   color: #ffffff; }
+
+/* ══════════════════════ 3. LIVE MARKETS ══════════════════════ */
+.mk-row {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.mk-l { min-width: 0; flex: 1 1 auto; }
+.mk-name {
+  font-size: 10.5px; color: #e3e3e3; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mk-meta { display: flex; gap: 4px; margin-top: 2px; font-size: 8.5px; color: var(--dim2); letter-spacing: 0.06em; }
+.mk-meta .sep { color: #333; }
+.mk-r { display: flex; gap: 12px; flex: 0 0 auto; }
+.mk-col { min-width: 40px; text-align: right; }
+.mk-p { font-size: 11px; color: var(--fg-strong); }
+.mk-c { font-size: 8.5px; color: var(--dim2); }
+.mk-c[data-dir="up"]   { color: var(--green); }
+.mk-c[data-dir="down"] { color: var(--red); }
+.mk-c[data-dir="flat"] { color: var(--dim2); }
+
+/* ══════════════════════ 4. COPYTRADE ENGINE ══════════════════════ */
+.cp-row { padding: 5px 8px; border-bottom: 1px solid var(--line); }
+.cp-addr { font-size: 9px; color: var(--dim); letter-spacing: 0.04em; }
+.cp-l2 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 1px; }
+.cp-act {
+  font-size: 10px; color: #e3e3e3;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cp-act[data-side="BUY"]  { color: var(--green); }
+.cp-act[data-side="SELL"] { color: var(--red); }
+.cp-amt { font-size: 10px; color: var(--fg-strong); flex: 0 0 auto; }
+
+/* ══════════════════════ 5. PNL ══════════════════════ */
+.pnl-body { display: flex; flex-direction: column; padding: 8px; position: relative; }
+.pnl-big {
+  font-size: 27px; font-weight: 600; line-height: 1.1;
+  color: var(--fg-strong); letter-spacing: -0.02em;
+  flex: 0 0 auto;
+}
+.pnl-big[data-dir="up"]   { color: var(--green); }
+.pnl-big[data-dir="down"] { color: var(--red); }
+.pnl-spark-wrap { flex: 1 1 auto; min-height: 44px; margin: 6px 0 0; }
+.spark { width: 100%; height: 100%; display: block; overflow: visible; }
+.spark-line { fill: none; stroke: var(--green); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.spark-area { fill: rgba(0, 224, 122, 0.12); stroke: none; }
+.pnl-delta {
+  font-size: 9px; color: var(--dim);
+  text-align: right; flex: 0 0 auto;
+}
+/* 权威总额来自 /value（不是被 limit 截断的 ΣcurrentValue） */
+.pnl-value {
+  font-size: 9px; color: var(--dim2);
+  text-align: right; flex: 0 0 auto;
+  letter-spacing: 0.04em;
+}
+/* 硬声明：历史只有约 1 天 → 不展示任何长历史指标 */
+.pnl-caveat {
+  font-size: 8px; color: var(--dim2);
+  text-align: right; flex: 0 0 auto;
+  border-top: 1px solid var(--line-soft);
+  margin-top: 2px; padding-top: 2px;
+}
+.pnl-delta[data-dir="up"]   { color: var(--green); }
+.pnl-delta[data-dir="down"] { color: var(--red); }
+
+/* ══════════════════════ 6. ARBER LEADERBOARD ══════════════════════ */
+.lb-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.lb-rank { font-size: 9.5px; color: var(--dim2); flex: 0 0 22px; }
+.lb-row .addr {
+  flex: 1 1 auto; min-width: 0; font-size: 10px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lb-pnl { font-size: 10px; font-weight: 600; color: var(--green); flex: 0 0 auto; }
+.lb-tx { font-size: 8.5px; color: var(--dim); flex: 0 0 62px; text-align: right; }
+
+/* ══════════════════════ 降级横幅（代理不可达）══════════════════════ */
+.banner {
+  display: flex; align-items: center;
+  padding: 2px 10px;
+  background: rgba(224, 32, 32, 0.14);
+  border-bottom: 1px solid var(--red);
+  color: var(--red);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+/* ══════════════════════ GLOBAL MARKET BAND（腾讯直连）══════════════════════ */
+.band {
+  display: flex; align-items: center; gap: 0;
+  border-bottom: 1px solid var(--line);
+  background: #020202;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.band-label {
+  padding: 0 10px;
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  color: var(--dim2);
+  border-right: 1px solid var(--line);
+  line-height: 20px;
+}
+.band-items { display: flex; align-items: center; flex: 1 1 auto; overflow: hidden; min-width: 0; }
+.band-item {
+  display: flex; align-items: baseline; gap: 5px;
+  padding: 0 12px;
+  border-right: 1px solid var(--line-soft);
+  font-size: 10.5px;
+  line-height: 20px;
+  flex: 0 0 auto;
+}
+.bi-name { font-style: normal; color: var(--dim); font-size: 9.5px; }
+.bi-price { font-weight: 500; color: var(--fg-strong); }
+.bi-chg { font-style: normal; font-size: 9.5px; color: var(--dim2); }
+.band-item[data-dir="up"]   .bi-price, .band-item[data-dir="up"]   .bi-chg { color: var(--green); }
+.band-item[data-dir="down"] .bi-price, .band-item[data-dir="down"] .bi-chg { color: var(--red); }
+.band-dead { color: var(--red); font-size: 9.5px; letter-spacing: 0.12em; padding: 0 12px; }
+.band-state {
+  margin-left: auto;
+  padding: 0 10px;
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  border-left: 1px solid var(--line);
+  line-height: 20px;
+  flex: 0 0 auto;
+}
+.band-state-ok  { color: var(--green); }
+.band-state-bad { color: var(--red); font-weight: 700; }
+/* 休市：不是错误，但绝不能标 LIVE —— 用琥珀提示"这是上次收盘快照" */
+.band-state-closed { color: var(--amber); }
+
+/* ── 活性标注（用户要一眼判断"该不该看它"）──────────────────────────── */
+.k-active { background: #0f766e; color: #ffffff; }        /* 活跃钱包标签 */
+.wl-age { font-size: 8px; color: var(--green); letter-spacing: 0.04em; }
+.wl-age[data-age="stale"] { color: var(--dim2); }
+/* /value 可见：有资金=白，0=暗灰（不让用户猜为什么不动） */
+.wl-val { font-size: 8px; color: var(--fg); letter-spacing: 0.03em; }
+.wl-val[data-funded="no"] { color: var(--dim2); }
+.lb-age { font-size: 7.5px; color: var(--green); flex: 0 0 auto; letter-spacing: 0.02em; }
+.lb-age[data-age="stale"] { color: var(--dim2); }
+/* >7 天无成交的历史大户：整行降权，避免被误读成"现在最值得跟" */
+.lb-row[data-stale="yes"] .addr,
+.lb-row[data-stale="yes"] .lb-pnl { opacity: 0.45; }
+
+/* ══════════════════════ 空数据 / 离线段 ══════════════════════ */
+.empty {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; min-height: 60px;
+}
+.empty-txt {
+  font-size: 9.5px; color: var(--dim2);
+  letter-spacing: 0.16em; text-transform: uppercase;
+  text-align: center; padding: 0 10px;
+}
+
+/* ══════════════════════ 闪烁高亮（终端灵魂）══════════════════════ */
+@keyframes flashUp {
+  0%   { background-color: rgba(0, 224, 122, 0.38); color: #eafff6; }
+  100% { background-color: transparent; }
+}
+@keyframes flashDown {
+  0%   { background-color: rgba(255, 59, 59, 0.38); color: #fff0f0; }
+  100% { background-color: transparent; }
+}
+.flash-up   { animation: flashUp   0.9s ease-out; border-radius: 1px; }
+.flash-down { animation: flashDown 0.9s ease-out; border-radius: 1px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .flash-up, .flash-down { animation: none; }
+  .live .dot { animation: none; }
+}

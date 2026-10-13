@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OKX // TERMINAL — REAL-TIME</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23000'/><rect x='3' y='7' width='3' height='6' fill='%2300e07a'/><rect x='7' y='4' width='3' height='9' fill='%23ff3b46'/><rect x='11' y='9' width='3' height='4' fill='%2300e07a'/></svg>" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ⚠️ 模拟数据源警示条：仅在 ?sim=1 或两个通道都不可用且显式开启模拟时显示 -->
+<div id="simBanner" class="sim-banner" hidden>
+  ⚠️ SIMULATED FEED — 当前画面数据来自前端内置模拟源（?sim=1），<b>不是 OKX 真实行情</b>，不可作为交易依据
+</div>
+
+<!-- ============ 顶栏 ============ -->
+<header id="topbar">
+  <div class="tb-left">
+    <span class="brand">OKX // TERMINAL</span>
+    <span id="chanBadge" class="chan chan-init" data-f="chan">INIT</span>
+  </div>
+
+  <div class="tb-mid" id="tbPrices">
+    <!-- 动态注入：<div class="ticker"><span class="t-sym">BTC</span><span class="t-px">--</span><span class="t-chg">--</span></div> -->
+  </div>
+
+  <div class="tb-right">
+    <span id="liveDot" class="live live-down"><span class="dot">●</span> <span id="liveText">DOWN</span></span>
+    <span class="kv">CLIENTS <b id="statClients">--</b></span>
+    <span class="kv">msgs/s <b id="statMsgs" class="beat">--</b></span>
+    <span class="kv">tick <b id="statTicks" class="beat">0</b></span>
+    <span class="kv">SYNC <b id="clock">--:--:--</b></span>
+    <span class="kv">UPSTREAM <b id="statUp">--</b></span>
+  </div>
+</header>
+
+<!-- ============ 主区 ============ -->
+<main id="grid">
+
+  <!-- ---------- 左列 · 成交流 ---------- -->
+  <section class="panel" id="paneTrades">
+    <div class="p-head">
+      <span class="p-title">// TRADES</span>
+      <span class="p-meta" id="tradesHead">-- · --/s</span>
+    </div>
+    <div class="thead">
+      <span>PX</span><span>SZ</span><span>SIDE</span><span>TIME</span>
+    </div>
+    <div class="tbody" id="tradeRows">
+      <div class="empty">WAITING FOR FEED…</div>
+    </div>
+  </section>
+
+  <!-- ---------- 中列 ---------- -->
+  <section class="panel mid" id="paneMid">
+    <div class="p-head">
+      <span class="p-title">// ORDER BOOK DEPTH</span>
+      <span class="p-meta" id="bookHead">--</span>
+    </div>
+    <div class="canvas-wrap depth-wrap">
+      <canvas id="cvDepth"></canvas>
+      <div class="cv-empty" id="depthEmpty">NO DATA</div>
+    </div>
+
+    <div class="p-head sub">
+      <span class="p-title">// CANDLE 1m</span>
+      <span class="p-meta" id="pxHead">--</span>
+    </div>
+    <div class="canvas-wrap px-wrap">
+      <canvas id="cvPrice"></canvas>
+      <div class="cv-empty" id="priceEmpty">NO DATA</div>
+    </div>
+    <div class="fig-note" id="pxNote">
+      加载中…（K 线来自中继推送的真实 bar；本页只画实际收到的根数，不伪造历史）
+    </div>
+  </section>
+
+  <!-- ---------- 右列 ---------- -->
+  <section class="panel right" id="paneRight">
+
+    <div class="card">
+      <div class="p-head">
+        <span class="p-title">// OPEN INTEREST</span>
+        <span class="p-meta" id="oiHead">--</span>
+      </div>
+      <div class="card-body">
+        <div class="big" id="oiUsd">--</div>
+        <div class="delta" id="oiDelta">--</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="p-head">
+        <span class="p-title">// FUNDING</span>
+        <span class="p-meta" id="fundingHead">--</span>
+      </div>
+      <div class="card-body">
+        <div class="big" id="fundingRate">--</div>
+        <div class="delta">NEXT <span id="fundingNext">--</span> · 倒计 <b id="fundingCountdown">--</b></div>
+      </div>
+    </div>
+
+    <div class="card grow">
+      <div class="p-head">
+        <span class="p-title">// STATS</span>
+        <span class="p-meta" id="statsHead">--</span>
+      </div>
+      <div class="card-body">
+        <table class="kvtable">
+          <tr><td>CHANNEL</td><td id="sChan" class="v">--</td></tr>
+          <tr><td>UPSTREAM</td><td id="sUp" class="v">--</td></tr>
+          <tr><td>SUBSCRIBE</td><td id="sSub" class="v">--</td></tr>
+          <tr><td>UP UPTIME</td><td id="sUpTime" class="v">--</td></tr>
+          <tr><td>CLIENTS</td><td id="sClients" class="v">--</td></tr>
+          <tr><td>MSG TOTAL</td><td id="sMsgTotal" class="v">--</td></tr>
+          <tr><td>MSGS/S</td><td id="sMsgs" class="v">--</td></tr>
+          <tr><td>TICK COUNTER</td><td id="sTicks" class="v">--</td></tr>
+          <tr><td>LAST MSG</td><td id="sLastMsg" class="v">--</td></tr>
+          <tr><td>RECONNECTS</td><td id="sReconn" class="v">--</td></tr>
+          <tr><td>FALLBACKS</td><td id="sFallback" class="v">--</td></tr>
+          <tr><td>RING</td><td id="sRing" class="v">--</td></tr>
+          <tr><td>PERSIST</td><td id="sPersist" class="v">--</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="p-head"><span class="p-title">// LOG</span></div>
+      <div class="log" id="log"></div>
+    </div>
+
+  </section>
+</main>
+
+<!-- ============ 底部 · 逐秒心跳带 ============ -->
+<footer id="heartbeat">
+  <span class="hb-label">HEARTBEAT msgs/s · LAST 60s</span>
+  <canvas id="cvHeart"></canvas>
+  <span class="hb-val">now <b id="hbNow" class="beat">--</b>/s</span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

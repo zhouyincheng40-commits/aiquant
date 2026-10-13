@@ -1,0 +1,49 @@
+{
+  "name": "dsh-aiquant-mode",
+  "version": "0.1.0",
+  "description": "DSH AI量化模式：一句话拉起 AI 量化作战智能体（数据 / 因子 / 策略 / 回测 / 风控 / 实盘 六角色），含常驻右侧「实时走向看板」、SQLite 事实库与量化技能库",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./store": "./lib/store.js",
+    "./feed": "./lib/feed.js",
+    "./ui": "./lib/ui.js",
+    "./tools": "./lib/tools.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "presets",
+    "skills",
+    "scripts",
+    "tools",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "quant",
+    "ai量化",
+    "trading",
+    "backtest",
+    "dashboard"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": []
+    }
+  },
+  "author": "local",
+  "engines": {
+    "dsh": ">=0.1.7"
+  }
+}

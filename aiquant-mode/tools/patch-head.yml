@@ -1,0 +1,66 @@
+# dsh-aiquant-mode bundle patch —— 静态部分（host 平面）
+#
+# 本文件由 tools/build.mjs 与 presets/aiquant/ 一起合成 cordis.patch.yml。
+# 不要直接改 cordis.patch.yml 的生成区；改这里或 presets/ 后跑：
+#     node tools/build.mjs
+#
+# 补丁层顺序：bundle 层 → 用户自己的 cordis.patch.yml → --patch；
+# 用户要覆盖这里任何一处，写在自己的 profile 补丁里即可（行 id 前缀 `aiquant-mode-`）。
+#
+# 行 id 前缀 `aiquant-mode-`：`- insert:` 是**追加**语义（不按 id 去重），
+# 带前缀的新 id 不会和用户历史补丁里的旧行撞车。
+#
+# 2) 事实库：发布 ctx.aiquant（SQLite），数据落在 $DSH_HOME/aiquant
+- insert:
+    - id: aiquant-mode-store
+      name: dsh-aiquant-mode/store
+      config:
+        root: !!js dshHomePath('aiquant')
+        workspace: !!js process.env.AIQUANT_HOME || 'D:/量化'
+
+# 3) 行情/信号引擎：发布 ctx.aiquantFeed，轮询实时行情 + 拉日线 + 出信号
+- insert:
+    - id: aiquant-mode-feed
+      name: dsh-aiquant-mode/feed
+      config:
+        intervalMs: 6000
+        klineRefreshMinutes: 30
+        # 非交易时段自动降频（秒），避免空转烧配额
+        idleIntervalMs: 60000
+
+# 4) 看板 host 半侧：POST /aiquant/api（浏览器半侧由 package.json 的 dsh.client 声明）
+- insert:
+    - id: aiquant-mode-ui
+      name: dsh-aiquant-mode/ui
+
+# 5) 量化 MCP 服务器（q_* 工具）：解释器用主环境 aiquant（akshare/pandas/TA-Lib），
+#    服务器文件在工作区 mcp/quant_mcp/server.py。行 id 带 `aiquant-mode-` 前缀，
+#    与 profile 里历史遗留的 mcp-quant 行不冲突（那条指向已删除的 D:\AI量化，应删掉）。
+- insert:
+    - id: aiquant-mode-mcp
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: aiquant
+        transport: stdio
+        command: !!js process.env.AIQUANT_PYTHON || 'C:/Users/33096/.conda/envs/aiquant/python.exe'
+        args:
+          - !!js (process.env.AIQUANT_HOME || 'D:/量化') + '/mcp/quant_mcp/server.py'
+        cwd: !!js process.env.AIQUANT_HOME || 'D:/量化'
+        env:
+          PYTHONUTF8: '1'
+          PYTHONIOENCODING: 'utf-8'
+          AIQUANT_HOME: !!js process.env.AIQUANT_HOME || 'D:/量化'
+        toolCallTimeoutMs: 180000
+        failOnStartupError: false
+        reconnect:
+          enabled: true
+          initialDelayMs: 2000
+          maxDelayMs: 30000
+          maxAttempts: 10
+
+# 6) 自举：包内路径/预设/技能落地（老版本 DSH 的目录扫描靠它；新版靠上面的声明行 + ctx.aiquantMode）
+- insert:
+    - id: aiquant-mode
+      name: dsh-aiquant-mode
+      config:
+        workspace: !!js process.env.AIQUANT_HOME || 'D:/量化'

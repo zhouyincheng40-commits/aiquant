@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>POLY // TERMINAL</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="booting">
+
+<!-- ══════════════ TOP BAR ══════════════ -->
+<header class="topbar" id="topbar">
+  <div class="logo">POLY <span class="slash">//</span> TERMINAL</div>
+
+  <div class="tokens" id="headerTokens">
+    <!-- token order follows the reference layout: bankroll / pnl / edges / win / wallets.
+         Labels (EDGES, WALLETS, WIN) are static UI chrome; every number comes from /api/state. -->
+    <span class="tok">
+      <span class="tok-cur">&#931; TRACKED</span>
+      <span class="tok-v" data-h="bankroll">--</span>
+      <span class="tok-arrow" data-h="bankroll_arrow"></span>
+    </span>
+    <span class="tok tok-pnl" data-tone="pnl">
+      <span class="tok-v" data-h="pnl">--</span><span class="tok-l">CASH PNL</span>
+    </span>
+    <span class="tok">
+      <span class="tok-v" data-h="edges">--</span><span class="tok-l">EDGES</span>
+    </span>
+    <span class="tok">
+      <span class="tok-v" data-h="win_rate_pct">--</span><span class="tok-l">WIN 24H</span>
+    </span>
+    <span class="tok">
+      <span class="tok-v" data-h="wallets">--</span><span class="tok-l">WALLETS</span>
+    </span>
+    <span class="tok tok-sample" id="sampleChip" hidden><span class="age">--</span></span>
+  </div>
+
+  <div class="spacer"></div>
+
+  <div class="live" id="liveChip" data-state="unknown">
+    <span class="dot"></span><span class="live-txt" data-h="live">--</span>
+  </div>
+</header>
+
+<!-- ══════════════ DEGRADED BANNER（代理不可达时显式告警） ══════════════ -->
+<div class="banner" id="banner" hidden></div>
+
+<!-- ══════════════ GLOBAL MARKET BAND（腾讯直连，独立于代理） ══════════════ -->
+<div class="band" id="band">
+  <span class="band-label">GLOBAL</span>
+  <div class="band-items" id="bandItems"></div>
+  <span class="band-state" id="bandState">--</span>
+</div>
+
+<!-- ══════════════ MAIN GRID (3 columns) ══════════════ -->
+<main class="grid-main">
+
+  <!-- ── 1. MISPRICING SCANNER ── -->
+  <section class="panel" id="panel-scanner" data-panel="scanner">
+    <div class="p-head">
+      <span class="p-title">// MISPRICING SCANNER</span>
+      <span class="p-right">
+        <span class="tag tag-red" data-p="scanner_tag">--</span>
+        <span class="clock" data-p="clock">--:--</span>
+      </span>
+    </div>
+    <div class="p-body" data-list="scanner"></div>
+    <div class="p-foot"><span class="p-overflow"></span><span class="p-state" data-p="state"></span></div>
+  </section>
+
+  <!-- ── 2. WALLET TRACKER ── -->
+  <section class="panel" id="panel-wallets" data-panel="wallets">
+    <div class="p-head">
+      <span class="p-title">// WALLET TRACKER</span>
+      <span class="p-right">
+        <span class="tag tag-green" data-p="wallets_tag">--</span>
+      </span>
+    </div>
+    <div class="p-body" data-list="wallets"></div>
+    <div class="p-foot"><span class="p-state" data-p="state"></span></div>
+  </section>
+
+  <!-- ── 3. LIVE MARKETS ── -->
+  <section class="panel" id="panel-markets" data-panel="markets">
+    <div class="p-head">
+      <span class="p-title">// LIVE MARKETS</span>
+      <span class="p-right">
+        <span class="tag tag-green" data-p="markets_tag">--</span>
+      </span>
+    </div>
+    <div class="p-body" data-list="markets"></div>
+    <div class="p-foot"><span class="p-state" data-p="state"></span></div>
+  </section>
+</main>
+
+<!-- ══════════════ BOTTOM BAR (3 columns) ══════════════ -->
+<footer class="grid-foot">
+
+  <!-- ── 4. COPYTRADE ENGINE ── -->
+  <section class="panel" id="panel-copy" data-panel="copy">
+    <div class="p-head">
+      <span class="p-title">// COPYTRADE ENGINE</span>
+      <span class="p-right">
+        <span class="tag tag-green" data-p="copy_tag">--</span>
+      </span>
+    </div>
+    <div class="p-body" data-list="copy"></div>
+    <div class="p-foot"><span class="p-state" data-p="state"></span></div>
+  </section>
+
+  <!-- ── 5. PNL ── -->
+  <section class="panel" id="panel-pnl" data-panel="pnl">
+    <div class="p-head">
+      <span class="p-title">// PNL</span>
+      <span class="p-right"><span class="p-dim" data-p="pnl_meta"></span></span>
+    </div>
+    <div class="p-body pnl-body">
+      <div class="pnl-big" data-p="pnl_total">--</div>
+      <div class="pnl-spark-wrap">
+        <svg class="spark" id="pnlSpark" viewBox="0 0 200 60" preserveAspectRatio="none"
+             role="img" aria-label="pnl sparkline"></svg>
+      </div>
+      <div class="pnl-delta" data-p="pnl_delta">--</div>
+      <div class="pnl-value" data-p="pnl_value"></div>
+      <!-- 硬声明：本面板只有约 1 天历史，禁止在此展示任何需要长历史的年化/长期回撤指标 -->
+      <div class="pnl-caveat">session-level short window &middot; history source limited to ~1 day</div>
+    </div>
+    <div class="p-foot"><span class="p-state" data-p="state"></span></div>
+  </section>
+
+  <!-- ── 6. ARBER LEADERBOARD ── -->
+  <section class="panel" id="panel-leaderboard" data-panel="leaderboard">
+    <div class="p-head">
+      <span class="p-title">// ARBER LEADERBOARD</span>
+      <span class="p-right">
+        <span class="tag tag-green" data-p="leaderboard_tag">--</span>
+      </span>
+    </div>
+    <div class="p-body" data-list="leaderboard"></div>
+    <div class="p-foot"><span class="p-state" data-p="state"></span></div>
+  </section>
+</footer>
+
+<!-- ══════════════ EMPTY / OFFLINE PLACEHOLDER ══════════════ -->
+<template id="tpl-empty">
+  <div class="empty"><span class="empty-txt">NO DATA</span></div>
+</template>
+
+<!-- ══════════════ ROW TEMPLATES ══════════════ -->
+<template id="tpl-scanner-row">
+  <article class="sc-row" data-row>
+    <div class="sc-l1">
+      <span class="sc-mkt" data-f="market">--</span>
+      <span class="sc-cross" title="mispricing flag">&#x271A;</span>
+      <span class="sc-nums">
+        <span class="sc-num"><b data-f="yes">--</b><i>BID&#931;</i></span>
+        <span class="sc-num"><b data-f="no">--</b><i>ASK&#931;</i></span>
+        <span class="sc-num"><b data-f="vol24">--</b><i>24V</i></span>
+      </span>
+    </div>
+    <div class="sc-l2">
+      <i class="sc-label">NET&nbsp;NEAREST</i>
+      <span class="sc-price" data-f="price">--</span>
+      <span class="sc-fair" data-f="fair">--</span>
+      <span class="sc-vol" data-f="volume">--</span>
+    </div>
+    <div class="sc-l3">
+      <span class="badge" data-f="edge_badge"><b data-f="edge_pct">--</b><i>GROSS</i></span>
+      <span class="sc-side" data-f="side"></span>
+    </div>
+    <div class="sc-l4">
+      <button type="button" class="btn" data-act="buy" title="UI only — no order routing">BUY YES</button>
+      <button type="button" class="btn" data-act="copy" title="UI only — no order routing">COPY TRADE</button>
+      <button type="button" class="btn" data-act="ignore" title="UI only — no order routing">IGNORE</button>
+    </div>
+  </article>
+</template>
+
+<template id="tpl-wallet-row">
+  <div class="wl-row" data-row>
+    <div class="wl-l">
+      <span class="addr" data-f="address">--</span>
+      <span class="tag tag-src" data-f="kind">--</span>
+    </div>
+    <div class="wl-r">
+      <span class="num" data-f="pnl">--</span>
+      <span class="p-dim" data-f="win">--</span>
+      <span class="wl-val" data-f="value">--</span>
+      <span class="wl-age" data-f="age">--</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-market-row">
+  <div class="mk-row" data-row>
+    <div class="mk-l">
+      <div class="mk-name" data-f="market">--</div>
+      <div class="mk-meta"><span data-f="category">--</span><span class="sep">·</span><span data-f="volume">--</span></div>
+    </div>
+    <div class="mk-r">
+      <div class="mk-col">
+        <div class="mk-p" data-f="yes_c">--<i>YES</i></div>
+        <div class="mk-c" data-f="yes_chg">--</div>
+      </div>
+      <div class="mk-col">
+        <div class="mk-p" data-f="no_c">--<i>NO</i></div>
+        <div class="mk-c" data-f="no_chg">--</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-copy-row">
+  <div class="cp-row" data-row>
+    <div class="cp-addr" data-f="address">--</div>
+    <div class="cp-l2">
+      <span class="cp-act" data-f="action">--</span>
+      <span class="cp-amt" data-f="size">--</span>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-band-item">
+  <span class="band-item" data-row>
+    <i class="bi-name" data-b="name">--</i>
+    <b class="bi-price" data-b="price">--</b>
+    <em class="bi-chg" data-b="chg"></em>
+  </span>
+</template>
+
+<template id="tpl-leader-row">
+  <div class="lb-row" data-row>
+    <span class="lb-rank" data-f="rank">--</span>
+    <span class="addr" data-f="address">--</span>
+    <span class="lb-age" data-f="age">--</span>
+    <span class="lb-pnl" data-f="pnl">--</span>
+    <span class="lb-tx" data-f="tx">--</span>
+  </div>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>
